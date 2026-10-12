@@ -3,107 +3,556 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AegisGraph · ShadowTrace</title>
+<title>AegisGraph · Financial Intelligence</title>
 <style>
-  :root { --navy:#0b2545; --blue:#13539b; --bg:#f3f5f8; --line:#d7dce3; --text:#1c2733; --muted:#6b7785; --err:#b3261e; --ok:#1b7a3d; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
-  header { background:var(--navy); color:#fff; padding:14px 32px; display:flex; align-items:baseline; gap:12px; }
-  header h1 { margin:0; font-size:18px; font-weight:600; letter-spacing:.3px; }
-  header span { color:#9fb3cc; font-size:13px; }
-  main { max-width:960px; margin:24px auto; padding:0 24px; display:grid; gap:20px; }
-  .card { background:#fff; border:1px solid var(--line); border-radius:6px; padding:20px; }
-  .card h2 { margin:0 0 12px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); }
-  #drop { border:2px dashed var(--line); border-radius:6px; padding:32px; text-align:center; color:var(--muted); cursor:pointer; transition:.15s; }
-  #drop.over, #drop:hover { border-color:var(--blue); background:#f0f5fb; }
-  #drop strong { color:var(--text); display:block; margin-bottom:4px; }
-  .row { display:flex; gap:12px; align-items:center; margin-top:16px; }
-  button { background:var(--blue); color:#fff; border:0; border-radius:4px; padding:9px 18px; font-size:14px; cursor:pointer; }
-  button:disabled { background:#9db4cf; cursor:not-allowed; }
-  button.secondary { background:#fff; color:var(--blue); border:1px solid var(--blue); padding:5px 12px; font-size:12px; }
-  #status { color:var(--muted); }
-  #status.err { color:var(--err); } #status.ok { color:var(--ok); }
-  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; }
-  .stat { border:1px solid var(--line); border-radius:4px; padding:10px 12px; }
-  .stat b { display:block; font-size:22px; color:var(--navy); }
-  .stat small { color:var(--muted); text-transform:uppercase; font-size:11px; letter-spacing:.4px; }
-  #skipped { margin-top:12px; color:var(--err); font-size:13px; white-space:pre-line; }
-  .head { display:flex; justify-content:space-between; align-items:center; }
-  pre { margin:0; background:#0f1b2d; color:#d6e2f2; padding:16px; border-radius:4px; overflow:auto; max-height:520px; font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace; }
-  .hidden { display:none; }
+:root{
+  --navy:#0a1f3d; --navy-2:#12305a; --red:#c8102e; --blue:#2563eb; --bg:#f3f5f9; --card:#fff; --line:#e1e6ee;
+  --text:#18212f; --muted:#667386; --ok:#1b7a3d; --warn:#b7791f; --err:#b3261e;
+  --radius:10px; --shadow:0 1px 2px rgba(10,31,61,.05),0 4px 14px rgba(10,31,61,.05);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100%}
+.sidebar{background:linear-gradient(180deg,var(--navy),#071429);color:#c9d6ea;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:12px;padding:22px 22px 18px}
+.mark{width:34px;height:34px;border-radius:8px;background:var(--red);display:grid;place-items:center;color:#fff;font-weight:700;font-size:20px;box-shadow:0 2px 8px rgba(200,16,46,.45)}
+.brand b{display:block;color:#fff;font-size:16px;letter-spacing:.3px}
+.brand small{color:#8aa0c0;font-size:11px;letter-spacing:.6px;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:2px;padding:8px 12px}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;color:#b4c4dd;text-decoration:none;font-weight:500}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav a.active{background:var(--navy-2);color:#fff;box-shadow:inset 3px 0 0 var(--red)}
+.nav svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.nav small{display:block;font-weight:400;color:#7f95b6;font-size:11px;margin-top:-2px}
+.side-foot{margin-top:auto;padding:16px 22px;font-size:11px;color:#6d84a6;border-top:1px solid rgba(255,255,255,.07)}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.topbar h1{margin:0;font-size:18px;font-weight:650}
+.chips{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 10px;border-radius:999px;background:#eef2f8;font-weight:600;color:var(--muted)}
+.chip i{width:8px;height:8px;border-radius:50%;background:#aab4c3}
+.chip.on{background:#e7f5ec;color:var(--ok)} .chip.on i{background:var(--ok);animation:pulse 1.8s infinite}
+.chip.off{background:#fdecea;color:var(--err)} .chip.off i{background:var(--err)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(27,122,61,.5)}70%{box-shadow:0 0 0 7px rgba(27,122,61,0)}100%{box-shadow:0 0 0 0 rgba(27,122,61,0)}}
+main{padding:24px 32px 48px;max-width:1280px;width:100%;margin:0 auto}
+.page{display:none;gap:20px;flex-direction:column}.page.active{display:flex}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);min-width:0}
+.card h2{margin:0 0 14px;font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.card-head h2{margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-gw{display:grid;grid-template-columns:320px 1fr;gap:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);border-top:3px solid var(--navy-2)}
+.kpi small{color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.6px;font-weight:700}
+.kpi b{display:block;font-size:28px;line-height:1.2;color:var(--navy);font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:12px}
+.kpi.red{border-top-color:var(--err)}.kpi.green{border-top-color:var(--ok)}.kpi.amber{border-top-color:#d97706}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:7px;padding:9px 16px;font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.15s;text-decoration:none}
+.btn:hover{filter:brightness(1.08)}.btn:disabled{background:#a9b9d3;cursor:not-allowed;filter:none}
+.btn.navy{background:var(--navy-2)}.btn.red{background:var(--red)}
+.btn.ghost{background:#fff;color:var(--blue);border:1px solid #b8c8e6}.btn.ghost:disabled{color:#98a8c4;background:#f5f7fb}
+.btn.sm{padding:5px 11px;font-size:12px}.btn.block{width:100%;justify-content:center}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
+.ghost .spin{border-color:rgba(37,99,235,.25);border-top-color:var(--blue)}
+@keyframes rot{to{transform:rotate(360deg)}}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+input[type=number],input[type=text],select{width:100%;padding:8px 10px;border:1px solid #cfd7e4;border-radius:7px;font:inherit;background:#fff;color:var(--text)}
+input:focus,select:focus{outline:2px solid #bcd0f7;border-color:var(--blue)}
+.field{margin-bottom:12px}
+.ctl{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px;background:#fafbfd}
+.ctl p{margin:0 0 10px;font-size:12px;color:var(--muted)}
+.row{display:flex;gap:10px;align-items:flex-end}
+.switch{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);font-weight:500;cursor:pointer}
+.sep{height:1px;background:var(--line);margin:16px 0}
+.muted{color:var(--muted)}
+.link{color:var(--blue);font-size:12px;font-weight:600;text-decoration:none}
+.seg,.tabs{display:inline-flex;background:#eef2f8;border-radius:8px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button,.tabs button{border:0;background:transparent;padding:5px 12px;border-radius:6px;font-weight:600;font-size:12px;font-family:inherit;color:var(--muted);cursor:pointer}
+.seg button.on,.tabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tabs button em{font-style:normal;color:#8d9aae;margin-left:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid #eef1f6;vertical-align:middle}
+tr.click{cursor:pointer}tr.click:hover td{background:#f6f9fe}tr.sel td{background:#eaf1fd}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tablewrap{overflow:auto;max-height:380px}
+.empty{color:var(--muted);text-align:center;padding:28px 12px}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.4px;color:#fff}
+.risk{display:flex;align-items:center;gap:8px;min-width:110px}
+.risk i{flex:1;height:6px;background:#e8edf5;border-radius:4px;overflow:hidden}.risk i b{display:block;height:100%}
+.risk span{font-variant-numeric:tabular-nums;font-weight:700;width:26px;text-align:right}
+.bars{display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:120px 1fr 56px;gap:10px;align-items:center;font-size:13px}
+.bar i{height:10px;background:#e8edf5;border-radius:5px;overflow:hidden}.bar i b{display:block;height:100%;border-radius:5px;transition:width .5s}
+.bar span{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.alert-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #eef1f6;cursor:pointer}
+.alert-item:last-child{border:0}.alert-item:hover{background:#f8fafd}
+.alert-item div{flex:1;min-width:0}.alert-item b{display:block;font-size:13px}.alert-item small{color:var(--muted)}
+.flows{display:grid;gap:18px}
+.flow-name{font-size:12px;font-weight:700;color:var(--navy-2);margin-bottom:8px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.step{background:#f1f5fb;border:1px solid #d9e2f0;border-radius:8px;padding:8px 12px;font-weight:600;font-size:12.5px;color:var(--navy)}
+.step small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+.arrow{color:#94a3b8;font-weight:700}
+.viz{position:relative;height:460px;background:#fbfcfe;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.viz svg{display:block;cursor:grab;touch-action:none}.viz svg:active{cursor:grabbing}
+.legend{position:absolute;left:10px;bottom:10px;display:flex;gap:12px;background:rgba(255,255,255,.92);border:1px solid var(--line);padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.hint{position:absolute;right:10px;bottom:10px;font-size:11px;color:#8d9aae}
+#tip{position:fixed;z-index:50;pointer-events:none;background:#0f1b2d;color:#e5edf9;padding:8px 10px;border-radius:7px;font-size:12px;max-width:300px;display:none;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#tip b{color:#fff}#tip div{color:#a9bad3}
+.drop{border:2px dashed #c4cfe0;border-radius:10px;padding:26px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s;background:#fafbfd}
+.drop:hover,.drop.over{border-color:var(--blue);background:#f0f5fe}.drop strong{display:block;color:var(--text);margin-bottom:2px}
+pre{margin:0;background:#0f1b2d;color:#d6e2f2;padding:16px;border-radius:8px;overflow:auto;max-height:420px;font:12.5px/1.55 ui-monospace,Menlo,Consolas,monospace}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}.facts dt{color:var(--muted)}.facts dd{margin:0;font-weight:600;word-break:break-word}
+.gauge{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--gc) calc(var(--p)*1%),#e8edf5 0)}
+.gauge div{width:72px;height:72px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:24px;font-weight:700;color:var(--navy)}
+.detail-top{display:flex;gap:18px;align-items:center;margin-bottom:14px}
+.accts{max-height:150px;overflow:auto;font:12px ui-monospace,Menlo,Consolas,monospace;background:#f6f8fc;border-radius:7px;padding:8px 10px;margin-top:12px}
+.stack{display:flex;height:22px;border-radius:6px;overflow:hidden;background:#e8edf5}.stack b{display:block;height:100%}
+.stack-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}.stack-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.ok-t{color:var(--ok);font-weight:700}.warn-t{color:var(--warn);font-weight:700}.err-t{color:var(--err);font-weight:700}
+#toasts{position:fixed;right:20px;bottom:20px;display:grid;gap:10px;z-index:60}
+.toast{background:#0f1b2d;color:#fff;padding:11px 16px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-weight:500;max-width:380px;border-left:4px solid var(--blue);animation:in .2s}
+.toast.err{border-color:var(--err)}.toast.ok{border-color:#3ecf72}
+@keyframes in{from{transform:translateY(8px);opacity:0}}
+.col{display:flex;flex-direction:column;gap:20px}
+[hidden]{display:none!important}
+@media(max-width:1000px){
+  .app{grid-template-columns:1fr}.sidebar{position:static;height:auto;flex-direction:row;align-items:center;overflow-x:auto}
+  .brand{padding:12px 16px}.nav{flex-direction:row;padding:8px}.nav small,.side-foot{display:none}
+  .grid2,.grid-gw{grid-template-columns:1fr!important}main,.topbar{padding-left:16px;padding-right:16px}
+}
 </style>
 </head>
 <body>
-<header><h1>AegisGraph · ShadowTrace</h1><span>Static Ownership Mapping</span></header>
-<main>
-  <section class="card">
-    <h2>Upload trust deed</h2>
-    <div id="drop"><strong id="fname">Drop a PDF here or click to browse</strong>Trust deeds, shell company registries, corporate filings</div>
-    <input id="file" type="file" accept="application/pdf" class="hidden">
-    <div class="row"><button id="go" disabled>Extract &amp; map ownership</button><span id="status"></span></div>
-  </section>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="mark">A</div><div><b>AegisGraph</b><small>Financial Intelligence</small></div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">100% open source<br>Spring Boot 4 · Spring AI · Ollama<br>TinkerGraph · Apache Kafka</div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1 id="pageTitle">Overview</h1>
+      <div class="chips"><span id="lastRefresh"></span><span class="chip" id="apiChip"><i></i><span>Connecting…</span></span></div>
+    </header>
+    <main>
 
-  <section id="result" class="card hidden">
-    <h2>Graph summary</h2>
-    <div class="stats" id="stats"></div>
-    <div id="skipped"></div>
-  </section>
+      <!-- OVERVIEW -->
+      <section class="page active" id="page-overview">
+        <div class="kpis" id="kpis"></div>
+        <div class="grid2">
+          <div class="card"><h2>Graph composition</h2><div class="bars" id="vBars"></div><div class="sep"></div><div class="bars" id="eBars"></div></div>
+          <div class="card"><div class="card-head"><h2>Latest alerts</h2><a class="link" href="#graphweaver">View all →</a></div><div id="recentAlerts"></div></div>
+        </div>
+        <div class="card"><h2>Platform pipeline</h2><div class="flows" id="flows"></div></div>
+      </section>
 
-  <section id="jsonCard" class="card hidden">
-    <div class="head"><h2>Extracted entities (raw JSON)</h2><button class="secondary" id="copy">Copy</button></div>
-    <pre id="json"></pre>
-  </section>
-</main>
+      <!-- SHADOWTRACE -->
+      <section class="page" id="page-shadowtrace">
+        <div class="card">
+          <h2>Upload trust deed</h2>
+          <div class="drop" id="drop"><strong id="fname">Drop a PDF here or click to browse</strong>Trust deeds, corporate registries, shareholder agreements</div>
+          <input id="file" type="file" accept="application/pdf" hidden>
+          <div class="row" style="margin-top:14px;align-items:center">
+            <button class="btn" id="extractBtn" disabled>Extract &amp; map ownership</button>
+            <span id="extractStatus" class="muted"></span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Ownership network</h2>
+            <div class="seg" id="ownSeg"><button data-view="graph" class="on">Persisted graph</button><button data-view="doc">This document</button></div></div>
+          <div class="viz" id="ownViz"></div>
+        </div>
+        <div id="docResult" class="col" hidden>
+          <div class="kpis" id="docKpis"></div>
+          <div class="card"><div class="card-head"><h2>Extracted entities</h2><div class="tabs" id="docTabs"></div></div><div class="tablewrap" id="docTable"></div></div>
+          <div class="card"><div class="card-head"><h2>Raw extracted JSON</h2><button class="btn ghost sm" id="copyJson">Copy</button></div><pre id="rawJson"></pre></div>
+        </div>
+      </section>
+
+      <!-- GRAPHWEAVER -->
+      <section class="page" id="page-graphweaver">
+        <div class="grid-gw">
+          <div class="card">
+            <h2>Transaction simulator</h2>
+            <div class="ctl"><p>Layered payments through intermediaries, just below the CHF 10k ceiling.</p>
+              <div class="row"><div class="field" style="flex:1;margin:0"><label>Intermediaries</label><input type="number" id="nInter" value="20" min="1" max="200"></div>
+              <button class="btn navy" data-sim="fan-out-fan-in" data-param="intermediaries" data-src="nInter">Fan-Out / Fan-In</button></div></div>
+            <div class="ctl"><p>Funds travel a ring of accounts and return to the origin within the hour.</p>
+              <div class="row"><div class="field" style="flex:1;margin:0"><label>Hops</label><input type="number" id="nHops" value="6" min="3" max="6"></div>
+              <button class="btn navy" data-sim="circular" data-param="hops" data-src="nHops">Circular</button></div></div>
+            <div class="ctl"><p>Random everyday payments. Should trigger nothing.</p>
+              <div class="row"><div class="field" style="flex:1;margin:0"><label>Transactions</label><input type="number" id="nNoise" value="200" min="1" max="5000"></div>
+              <button class="btn ghost" data-sim="noise" data-param="count" data-src="nNoise">Noise</button></div></div>
+            <button class="btn red block" id="detectBtn">Run detection now</button>
+            <p class="muted" style="font-size:12px;margin:10px 0 0">Detection also runs automatically every 30s. Events travel through Kafka, so allow a second or two.</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>AML alerts</h2><span class="muted" id="alertCount"></span></div>
+            <div class="tablewrap" style="max-height:300px"><table><thead><tr><th>Time</th><th>Signature</th><th>Severity</th><th>Risk</th><th class="num">Accounts</th><th class="num">Amount (CHF)</th></tr></thead><tbody id="alertRows"></tbody></table></div>
+          </div>
+        </div>
+        <div class="grid2" style="grid-template-columns:1.6fr 1fr">
+          <div class="card"><h2>Transaction subgraph</h2><div class="viz" id="alertViz"></div></div>
+          <div class="card"><h2>Alert detail</h2><div id="alertDetail"><div class="empty">Select an alert to inspect its subgraph.</div></div></div>
+        </div>
+      </section>
+
+      <!-- LOAD TEST -->
+      <section class="page" id="page-loadtest">
+        <div class="card">
+          <h2>Bulk data generator</h2>
+          <div class="row" style="flex-wrap:wrap">
+            <div class="field" style="width:260px;margin:0"><label>Scale</label>
+              <select id="seedScale"><option value="small">Small · 100 entities, ~0.5k tx</option><option value="medium">Medium · 300 entities, ~2k tx</option><option value="large" selected>Large · 600 entities, ~5k tx</option></select></div>
+            <div class="field" style="width:110px;margin:0"><label>Seed</label><input type="number" id="seedSeed" value="42"></div>
+            <label class="switch" style="margin:0 8px 8px"><input type="checkbox" id="seedDirect"> Bypass Kafka (direct ingest)</label>
+            <button class="btn red" id="seedBtn">Run load test</button>
+            <span class="muted" id="seedStatus" style="margin-bottom:8px"></span>
+          </div>
+        </div>
+        <div id="report" class="col" hidden>
+          <div class="kpis" id="repKpis"></div>
+          <div class="card"><h2>Execution timeline</h2><div class="stack" id="stack"></div><div class="stack-legend" id="stackLegend"></div></div>
+          <div class="grid2">
+            <div class="card"><h2>Nodes created</h2><div class="bars" id="repNodes"></div></div>
+            <div class="card"><h2>Edges written</h2><div class="bars" id="repEdges"></div></div>
+          </div>
+          <div class="card"><h2>Pattern detection · planted vs detected</h2>
+            <table><thead><tr><th>Signature</th><th class="num">Planted</th><th class="num">Detected</th><th>Result</th></tr></thead><tbody id="repPatterns"></tbody></table>
+            <div class="row" style="margin-top:16px"><a class="btn ghost sm" href="#graphweaver">View alerts</a><a class="btn ghost sm" href="#shadowtrace">View ownership graph</a></div></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+<div id="tip"></div>
+<div id="toasts"></div>
+
 <script>
-const $ = id => document.getElementById(id);
-const drop = $('drop'), input = $('file'), go = $('go'), status = $('status');
-let file = null, timer = null;
+'use strict';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const nf = new Intl.NumberFormat('en-CH');
+const NODE = { Person: '#2563eb', Company: '#0f766e', Trust: '#7c3aed', BankAccount: '#d97706' };
+const EDGE = { OWNS: '#2563eb', CONTROLS: '#7c3aed', TRANSFERRED_TO: '#d97706' };
+const SEV = { CRITICAL: '#b3261e', HIGH: '#d9480f', MEDIUM: '#b7791f', LOW: '#2f855a' };
+const SIG = { FAN_OUT_FAN_IN: 'Fan-Out / Fan-In', CIRCULAR_VELOCITY: 'Circular Velocity' };
+const SIG_TEXT = {
+  FAN_OUT_FAN_IN: 'One account splits funds into many sub-threshold transfers through intermediaries, which then consolidate into a single beneficiary within minutes (structuring / smurfing).',
+  CIRCULAR_VELOCITY: 'Funds hop through a chain of accounts and return to the originator inside the detection window with only small losses per hop (round-tripping).'
+};
+const state = { alerts: [], selected: null, doc: null, view: 'graph', tab: 'persons' };
 
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) el.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => el.append(c?.nodeType ? c : document.createTextNode(c ?? '')));
+  return el;
+};
+const toast = (msg, type = '') => { const t = h('div', { class: 'toast ' + type }, msg); $('#toasts').append(t); setTimeout(() => t.remove(), 5000); };
+const api = async (path, opts) => {
+  const res = await fetch(path, opts);
+  let data = null; try { data = await res.json(); } catch { /* empty body */ }
+  if (!res.ok) { const e = new Error(data?.detail || data?.message || 'HTTP ' + res.status); e.status = res.status; throw e; }
+  return data;
+};
+const busy = async (btn, fn) => {
+  const html = btn.innerHTML; btn.disabled = true; btn.prepend(h('span', { class: 'spin' }));
+  try { return await fn(); } finally { btn.disabled = false; btn.innerHTML = html; }
+};
+const toDate = v => new Date(typeof v === 'number' ? (v < 1e11 ? v * 1000 : v) : v);
+const clock = v => toDate(v).toLocaleTimeString('en-GB');
+const chf = v => nf.format(Math.round(v));
+const sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
+const badge = s => h('span', { class: 'badge', style: `background:${SEV[s] || '#667'}` }, s);
+const riskCol = r => r >= 80 ? SEV.CRITICAL : r >= 60 ? SEV.HIGH : r >= 40 ? SEV.MEDIUM : SEV.LOW;
+const riskBar = r => h('div', { class: 'risk' }, h('i', {}, h('b', { style: `width:${r}%;background:${riskCol(r)}` })), h('span', {}, r));
+
+/* ---------- navigation ---------- */
+const PAGES = {
+  overview: ['Overview', 'Platform status', 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z'],
+  shadowtrace: ['ShadowTrace', 'Ownership mapping', 'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5'],
+  graphweaver: ['GraphWeaver', 'Pattern detection', 'M22 12h-4l-3 9L9 3l-3 9H2'],
+  loadtest: ['Load test', 'Stress & metrics', 'M13 2L3 14h9l-1 8 10-12h-9z']
+};
+const TITLES = { overview: 'Overview', shadowtrace: 'ShadowTrace · Ownership Mapping', graphweaver: 'GraphWeaver · Pattern Detection', loadtest: 'Load Test & Metrics' };
+const svgIcon = d => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 24 24'); const p = document.createElementNS(s.namespaceURI, 'path'); p.setAttribute('d', d); s.append(p); return s; };
+Object.entries(PAGES).forEach(([id, [name, sub, icon]]) =>
+  $('#nav').append(h('a', { href: '#' + id, 'data-page': id }, svgIcon(icon), h('div', {}, name, h('small', {}, sub)))));
+const page = () => { const p = (location.hash || '#overview').slice(1); return TITLES[p] ? p : 'overview'; };
+function route() {
+  const p = page();
+  $$('.page').forEach(s => s.classList.toggle('active', s.id === 'page-' + p));
+  $$('#nav a').forEach(a => a.classList.toggle('active', a.dataset.page === p));
+  $('#pageTitle').textContent = TITLES[p];
+  if (p === 'shadowtrace') (state.view === 'doc' ? showDocGraph : loadPersisted)();
+  if (p === 'graphweaver') { renderAlertTable(); if (state.selected) selectAlert(state.selected); }
+  refresh();
+}
+addEventListener('hashchange', route);
+
+/* ---------- polling / overview ---------- */
+function setOnline(ok) {
+  const c = $('#apiChip'); c.className = 'chip ' + (ok ? 'on' : 'off');
+  c.lastElementChild.textContent = ok ? 'Live' : 'API offline';
+  if (ok) $('#lastRefresh').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB');
+}
+async function refresh() {
+  try {
+    const [s, a] = await Promise.all([api('/api/graph/stats'), api('/api/alerts')]);
+    const fresh = a.length && (!state.alerts.length || a[0].alertId !== state.alerts[0].alertId);
+    state.alerts = a; renderOverview(s); setOnline(true);
+    if (page() === 'graphweaver') { renderAlertTable(); if (!state.selected && a[0]) selectAlert(a[0].alertId); }
+    if (fresh && page() !== 'graphweaver') toast(`New AML alert: ${SIG[a[0].signature]} (risk ${a[0].riskScore})`, 'err');
+  } catch { setOnline(false); }
+}
+const kpi = (label, value, sub, cls = '') => h('div', { class: 'kpi ' + cls }, h('small', {}, label), h('b', {}, value), h('span', {}, sub || '\u00a0'));
+const bars = (el, map, colors) => {
+  el.replaceChildren(); const max = Math.max(1, ...Object.values(map));
+  const e = Object.entries(map); if (!e.length) el.append(h('div', { class: 'muted' }, 'No data yet'));
+  e.forEach(([k, v]) => el.append(h('div', { class: 'bar' }, h('span', { style: 'text-align:left;font-weight:500' }, k),
+    h('i', {}, h('b', { style: `width:${v / max * 100}%;background:${colors[k] || '#12305a'}` })), h('span', {}, nf.format(v)))));
+};
+function renderOverview(s) {
+  $('#kpis').replaceChildren(
+    kpi('Graph nodes', nf.format(sum(s.vertices)), `${nf.format(s.vertices.BankAccount || 0)} accounts`),
+    kpi('Graph edges', nf.format(sum(s.edges)), 'ownership + transfers'),
+    kpi('Transfers', nf.format(s.edges.TRANSFERRED_TO || 0), 'TRANSFERRED_TO', 'amber'),
+    kpi('AML alerts', nf.format(s.alerts), 'since startup', s.alerts ? 'red' : 'green'),
+    kpi('Critical', nf.format(s.criticalAlerts), 'risk ≥ 80', s.criticalAlerts ? 'red' : 'green'));
+  bars($('#vBars'), s.vertices, NODE); bars($('#eBars'), s.edges, EDGE);
+  const box = $('#recentAlerts'); box.replaceChildren();
+  if (!state.alerts.length) box.append(h('div', { class: 'empty' }, 'No alerts yet. Run a simulation or load test.'));
+  state.alerts.slice(0, 6).forEach(a => box.append(h('div', { class: 'alert-item', onclick: () => { state.selected = a.alertId; location.hash = '#graphweaver'; } },
+    badge(a.severity), h('div', {}, h('b', {}, SIG[a.signature]), h('small', {}, `${clock(a.detectedAt)} · ${a.accountRefs.length} accounts · CHF ${chf(a.totalAmount)}`)), h('b', {}, a.riskScore))));
+}
+(function flows() {
+  const lane = (name, steps) => h('div', {}, h('div', { class: 'flow-name' }, name),
+    h('div', { class: 'flow' }, steps.flatMap(([t, s], i) => [i ? h('span', { class: 'arrow' }, '→') : null, h('div', { class: 'step' }, t, h('small', {}, s))].filter(Boolean))));
+  $('#flows').append(
+    lane('Module 1 · ShadowTrace', [['PDF trust deed', 'upload'], ['Apache Tika', 'text / OCR'], ['Ollama LLM', 'Spring AI records'], ['Gremlin upsert', 'idempotent'], ['TinkerGraph', 'OWNS · CONTROLS']]),
+    lane('Module 2 · GraphWeaver', [['Payments', 'Kafka topic'], ['Ingest', 'dedupe + upsert'], ['TRANSFERRED_TO', 'temporary / permanent'], ['Pattern engine', 'rolling window'], ['AML_ALERT_EVENT', 'Kafka topic']]));
+})();
+
+/* ---------- graph visualisation (dependency-free force layout) ---------- */
+const tip = $('#tip');
+const showTip = (e, kids) => { tip.replaceChildren(...kids); tip.style.display = 'block'; tip.style.left = Math.min(e.clientX + 14, innerWidth - 320) + 'px'; tip.style.top = e.clientY + 14 + 'px'; };
+const hideTip = () => { tip.style.display = 'none'; };
+function drawGraph(el, nodes, edges) {
+  if (el._stop) el._stop(); el.replaceChildren();
+  if (!nodes.length) { el.append(h('div', { class: 'empty', style: 'padding-top:150px' }, 'No graph data yet.')); return; }
+  const W = el.clientWidth || 800, H = el.clientHeight || 460, NS = 'http://www.w3.org/2000/svg';
+  const S = (t, a = {}) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const svg = S('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', height: '100%' });
+  svg.innerHTML = '<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#94a3b8"/></marker></defs>';
+  const root = S('g'); svg.append(root);
+  const N = nodes.map((n, i) => { const a = i / nodes.length * 6.283, rr = .6 + Math.random() * .4; return { ...n, x: W / 2 + Math.cos(a) * W / 3 * rr, y: H / 2 + Math.sin(a) * H / 3 * rr, vx: 0, vy: 0, deg: 0 }; });
+  const idx = new Map(N.map(n => [n.id, n]));
+  const L = edges.map(e => ({ ...e, s: idx.get(e.source), t: idx.get(e.target) })).filter(e => e.s && e.t);
+  L.forEach(e => { e.s.deg++; e.t.deg++; });
+  N.forEach(n => { n.r = 7 + Math.min(10, n.deg * 1.1); });
+  const labelled = N.length <= 70, edgeLabelled = L.length <= 60;
+  let alpha = 1, raf = null, drag = null, pan = null; const view = { x: 0, y: 0, k: 1 };
+  const lines = L.map(e => { const l = S('line', { stroke: EDGE[e.label] || '#94a3b8', 'stroke-width': 1.4, 'stroke-opacity': .75, 'marker-end': 'url(#ar)' }); root.append(l); return l; });
+  const texts = edgeLabelled ? L.map(e => { const t = S('text', { 'font-size': 9.5, fill: '#64748b', 'text-anchor': 'middle' }); t.textContent = e.text || ''; root.append(t); return t; }) : [];
+  const loop = () => { step(); draw(); raf = (alpha > .015 || drag) ? requestAnimationFrame(loop) : null; };
+  const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
+  const gs = N.map(n => {
+    const g = S('g', { style: 'cursor:pointer' }); g.append(S('circle', { r: n.r, fill: NODE[n.label] || '#64748b', stroke: '#fff', 'stroke-width': 2 }));
+    if (labelled) { const t = S('text', { y: n.r + 11, 'font-size': 10, fill: '#334155', 'text-anchor': 'middle' }); t.textContent = n.name.length > 22 ? n.name.slice(0, 21) + '…' : n.name; g.append(t); }
+    g.addEventListener('mousemove', e => showTip(e, [h('b', {}, n.name), h('div', {}, n.label + ' · ' + n.deg + ' links'), ...Object.entries(n.props || {}).slice(0, 6).map(([k, v]) => h('div', {}, k + ': ' + v))]));
+    g.addEventListener('mouseleave', hideTip);
+    g.addEventListener('pointerdown', ev => { ev.stopPropagation(); drag = n; n.fixed = true; svg.setPointerCapture(ev.pointerId); alpha = Math.max(alpha, .35); kick(); });
+    root.append(g); return g;
+  });
+  const k0 = Math.max(28, Math.min(120, Math.sqrt(W * H / N.length) * .55));
+  function step() {
+    if (!drag) alpha *= .985;
+    for (let i = 0; i < N.length; i++) for (let j = i + 1; j < N.length; j++) {
+      const a = N[i], b = N[j], dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy || 1, m = k0 * k0 / d2 * alpha * .3;
+      a.vx += dx * m; a.vy += dy * m; b.vx -= dx * m; b.vy -= dy * m;
+    }
+    L.forEach(e => { const dx = e.t.x - e.s.x, dy = e.t.y - e.s.y, d = Math.sqrt(dx * dx + dy * dy) || 1, f = (d - k0) * .06 * alpha; e.s.vx += dx / d * f; e.s.vy += dy / d * f; e.t.vx -= dx / d * f; e.t.vy -= dy / d * f; });
+    N.forEach(n => {
+      if (n.fixed) { n.vx = n.vy = 0; return; }
+      n.vx += (W / 2 - n.x) * .012 * alpha; n.vy += (H / 2 - n.y) * .012 * alpha; n.vx *= .55; n.vy *= .55;
+      n.x = Math.max(24, Math.min(W - 24, n.x + Math.max(-30, Math.min(30, n.vx))));
+      n.y = Math.max(24, Math.min(H - 30, n.y + Math.max(-30, Math.min(30, n.vy))));
+    });
+  }
+  function draw() {
+    L.forEach((e, i) => {
+      const dx = e.t.x - e.s.x, dy = e.t.y - e.s.y, d = Math.sqrt(dx * dx + dy * dy) || 1, l = lines[i];
+      l.setAttribute('x1', e.s.x + dx / d * e.s.r); l.setAttribute('y1', e.s.y + dy / d * e.s.r);
+      l.setAttribute('x2', e.t.x - dx / d * (e.t.r + 3)); l.setAttribute('y2', e.t.y - dy / d * (e.t.r + 3));
+      if (texts[i]) { texts[i].setAttribute('x', (e.s.x + e.t.x) / 2); texts[i].setAttribute('y', (e.s.y + e.t.y) / 2 - 3); }
+    });
+    N.forEach((n, i) => gs[i].setAttribute('transform', `translate(${n.x} ${n.y})`));
+    root.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.k})`);
+  }
+  const pt = e => { const r = svg.getBoundingClientRect(), sx = W / r.width; return [((e.clientX - r.left) * sx - view.x) / view.k, ((e.clientY - r.top) * sx - view.y) / view.k, sx]; };
+  svg.addEventListener('pointerdown', e => { pan = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }; svg.setPointerCapture(e.pointerId); });
+  svg.addEventListener('pointermove', e => {
+    if (drag) { [drag.x, drag.y] = pt(e); draw(); }
+    else if (pan) { const sx = pt(e)[2]; view.x = pan.vx + (e.clientX - pan.x) * sx; view.y = pan.vy + (e.clientY - pan.y) * sx; draw(); }
+  });
+  svg.addEventListener('pointerup', () => { if (drag) { drag.fixed = false; drag = null; } pan = null; kick(); });
+  svg.addEventListener('wheel', e => {
+    e.preventDefault(); const [x, y, sx] = pt(e), r = svg.getBoundingClientRect(), k = Math.max(.3, Math.min(4, view.k * (e.deltaY < 0 ? 1.12 : .89)));
+    view.x = (e.clientX - r.left) * sx - x * k; view.y = (e.clientY - r.top) * sx - y * k; view.k = k; draw();
+  }, { passive: false });
+  el.append(svg);
+  el.append(h('div', { class: 'legend' }, [...new Set(N.map(n => n.label))].map(l => h('span', {}, h('i', { style: `background:${NODE[l] || '#64748b'}` }), l))),
+    h('div', { class: 'hint' }, `${N.length} nodes · ${L.length} edges · drag, scroll to zoom`));
+  el._stop = () => { if (raf) cancelAnimationFrame(raf); raf = null; hideTip(); };
+  for (let i = 0; i < 60; i++) step();
+  draw(); kick();
+}
+const shortAcct = id => '…' + id.slice(-6);
+const roleText = r => (r || '').replace(/_/g, ' ').toLowerCase();
+function vizFromApi(g) {
+  return {
+    nodes: g.nodes.map(n => ({ id: n.id, label: n.label, props: n.props, name: n.props.name || (n.props.iban ? shortAcct(n.props.iban) : n.id) })),
+    edges: g.edges.map(e => ({ source: e.source, target: e.target, label: e.label,
+      text: e.label === 'OWNS' ? (e.props.percentage != null ? e.props.percentage + '%' : '') : e.label === 'CONTROLS' ? roleText(e.props.role) : (e.props.amount != null ? nf.format(Math.round(e.props.amount)) : '') }))
+  };
+}
+
+/* ---------- ShadowTrace ---------- */
+const drop = $('#drop'), fileIn = $('#file'), extractBtn = $('#extractBtn'); let pdf = null;
 function pick(f) {
   if (!f) return;
-  if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) return setStatus('Only PDF files are accepted.', 'err');
-  file = f; $('fname').textContent = f.name + ' (' + (f.size / 1048576).toFixed(1) + ' MB)';
-  go.disabled = false; setStatus('');
+  if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) return toast('Only PDF files are accepted.', 'err');
+  pdf = f; $('#fname').textContent = `${f.name} (${(f.size / 1048576).toFixed(1)} MB)`; extractBtn.disabled = false;
 }
-function setStatus(msg, cls = '') { status.textContent = msg; status.className = cls; }
-
-drop.onclick = () => input.click();
-input.onchange = () => pick(input.files[0]);
-drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
-drop.ondragleave = () => drop.classList.remove('over');
+drop.onclick = () => fileIn.click(); fileIn.onchange = () => pick(fileIn.files[0]);
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); }; drop.ondragleave = () => drop.classList.remove('over');
 drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); pick(e.dataTransfer.files[0]); };
-
-go.onclick = async () => {
-  go.disabled = true; $('result').classList.add('hidden'); $('jsonCard').classList.add('hidden');
-  const t0 = Date.now();
-  timer = setInterval(() => setStatus('Processing… ' + Math.round((Date.now() - t0) / 1000) + 's (OCR + LLM extraction can take minutes)'), 500);
+extractBtn.onclick = () => busy(extractBtn, async () => {
+  const t0 = Date.now(), timer = setInterval(() => { $('#extractStatus').textContent = `Processing… ${Math.round((Date.now() - t0) / 1000)}s (OCR + LLM extraction can take minutes)`; }, 500);
   try {
-    const body = new FormData(); body.append('file', file);
-    const res = await fetch('/api/shadowtrace/upload', { method: 'POST', body });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || data.message || 'HTTP ' + res.status);
-    render(data);
-    setStatus('Done in ' + Math.round((Date.now() - t0) / 1000) + 's', 'ok');
-  } catch (e) { setStatus(e.message, 'err'); }
-  finally { clearInterval(timer); go.disabled = false; }
+    const body = new FormData(); body.append('file', pdf);
+    state.doc = await api('/api/shadowtrace/upload', { method: 'POST', body });
+    renderDoc(state.doc); setSeg('doc');
+    $('#extractStatus').textContent = `Done in ${Math.round((Date.now() - t0) / 1000)}s`; toast('Ownership structure extracted and stored', 'ok'); refresh();
+  } catch (e) { $('#extractStatus').textContent = ''; toast(e.message, 'err'); } finally { clearInterval(timer); }
+});
+const DOC_TABS = {
+  persons: ['Persons', ['name', 'nationality', 'documentNumber', 'pep'], r => ({ ...r, documentNumber: r.documentNumber ? '•••' + r.documentNumber.slice(-3) : '', pep: r.pep ? 'Yes' : '' })],
+  companies: ['Companies', ['name', 'jurisdiction', 'registrationNumber']],
+  trusts: ['Trusts', ['name', 'type', 'establishmentDate', 'governingLaw']],
+  owns: ['OWNS', ['sourceRef', 'targetRef', 'percentage', 'votingRights', 'evidence']],
+  controls: ['CONTROLS', ['sourceRef', 'targetRef', 'role', 'evidence']]
 };
-
-function render(d) {
-  const x = d.extracted, g = d.graph;
-  const stats = [['Persons', x.persons.length], ['Companies', x.companies.length], ['Trusts', x.trusts.length],
-                 ['OWNS', x.owns.length], ['CONTROLS', x.controls.length], ['Graph vertices', g.vertexTotal], ['Graph edges', g.edgeTotal]];
-  $('stats').innerHTML = '';
-  stats.forEach(([label, n]) => {
-    const el = document.createElement('div'); el.className = 'stat';
-    el.innerHTML = '<b></b><small></small>'; el.firstChild.textContent = n; el.lastChild.textContent = label;
-    $('stats').appendChild(el);
-  });
-  $('skipped').textContent = g.skippedEdges.length ? 'Skipped (unresolved entity reference):\n' + g.skippedEdges.join('\n') : '';
-  $('json').textContent = JSON.stringify(d.extracted, null, 2);
-  $('result').classList.remove('hidden'); $('jsonCard').classList.remove('hidden');
+function renderDoc(d) {
+  const x = d.extracted, g = d.graph; $('#docResult').hidden = false;
+  $('#docKpis').replaceChildren(kpi('Persons', x.persons.length), kpi('Companies', x.companies.length), kpi('Trusts', x.trusts.length),
+    kpi('OWNS', x.owns.length, 'edges', 'amber'), kpi('CONTROLS', x.controls.length, 'edges', 'amber'),
+    kpi('Skipped edges', g.skippedEdges.length, g.skippedEdges.length ? 'unresolved refs' : 'all resolved', g.skippedEdges.length ? 'red' : 'green'));
+  $('#rawJson').textContent = JSON.stringify(x, null, 2); renderTabs();
+}
+function renderTabs() {
+  const x = state.doc?.extracted; if (!x) return;
+  $('#docTabs').replaceChildren(...Object.entries(DOC_TABS).map(([k, [n]]) => h('button', { class: k === state.tab ? 'on' : '', onclick: () => { state.tab = k; renderTabs(); } }, n, h('em', {}, x[k].length))));
+  const [, cols, map] = DOC_TABS[state.tab], rows = x[state.tab].map(r => map ? map(r) : r);
+  $('#docTable').replaceChildren(rows.length ? h('table', {}, h('thead', {}, h('tr', {}, cols.map(c => h('th', {}, c)))),
+    h('tbody', {}, rows.map(r => h('tr', {}, cols.map(c => h('td', { class: typeof r[c] === 'number' ? 'num' : '' }, r[c] ?? '')))))) : h('div', { class: 'empty' }, 'None extracted'));
+}
+$('#copyJson').onclick = async () => { await navigator.clipboard.writeText($('#rawJson').textContent); toast('JSON copied', 'ok'); };
+function setSeg(v) { state.view = v; $$('#ownSeg button').forEach(b => b.classList.toggle('on', b.dataset.view === v)); (v === 'doc' ? showDocGraph : loadPersisted)(); }
+$$('#ownSeg button').forEach(b => { b.onclick = () => setSeg(b.dataset.view); });
+function showDocGraph() {
+  const x = state.doc?.extracted;
+  if (!x) { drawGraph($('#ownViz'), [], []); return; }
+  const nodes = [...x.persons.map(p => ({ id: p.ref, label: 'Person', name: p.name, props: { nationality: p.nationality, pep: p.pep } })),
+    ...x.companies.map(c => ({ id: c.ref, label: 'Company', name: c.name, props: { jurisdiction: c.jurisdiction } })),
+    ...x.trusts.map(t => ({ id: t.ref, label: 'Trust', name: t.name, props: { type: t.type } }))];
+  drawGraph($('#ownViz'), nodes, [...x.owns.map(e => ({ source: e.sourceRef, target: e.targetRef, label: 'OWNS', text: e.percentage != null ? e.percentage + '%' : '' })),
+    ...x.controls.map(e => ({ source: e.sourceRef, target: e.targetRef, label: 'CONTROLS', text: roleText(e.role) }))]);
+}
+async function loadPersisted() {
+  try { const v = vizFromApi(await api('/api/graph/ownership?limit=250')); drawGraph($('#ownViz'), v.nodes, v.edges); } catch (e) { toast(e.message, 'err'); }
 }
 
-$('copy').onclick = async () => { await navigator.clipboard.writeText($('json').textContent); $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy', 1200); };
+/* ---------- GraphWeaver ---------- */
+function renderAlertTable() {
+  const body = $('#alertRows'); body.replaceChildren(); $('#alertCount').textContent = state.alerts.length + ' total';
+  if (!state.alerts.length) { body.append(h('tr', {}, h('td', { colspan: 6, class: 'empty' }, 'No alerts yet. Run a simulation, then detection.'))); return; }
+  state.alerts.forEach(a => body.append(h('tr', { class: 'click' + (a.alertId === state.selected ? ' sel' : ''), onclick: () => selectAlert(a.alertId) },
+    h('td', {}, clock(a.detectedAt)), h('td', {}, SIG[a.signature]), h('td', {}, badge(a.severity)), h('td', {}, riskBar(a.riskScore)),
+    h('td', { class: 'num' }, a.accountRefs.length), h('td', { class: 'num' }, chf(a.totalAmount)))));
+}
+async function selectAlert(id) {
+  state.selected = id; renderAlertTable();
+  const a = state.alerts.find(x => x.alertId === id); if (!a) return;
+  const mins = Math.max(1, Math.round((a.lastTimestamp - a.firstTimestamp) / 60000));
+  $('#alertDetail').replaceChildren(
+    h('div', { class: 'detail-top' }, h('div', { class: 'gauge', style: `--p:${a.riskScore};--gc:${SEV[a.severity]}` }, h('div', {}, a.riskScore)),
+      h('div', {}, h('b', { style: 'font-size:16px;display:block' }, SIG[a.signature]), badge(a.severity))),
+    h('p', { class: 'muted', style: 'margin:0 0 12px' }, SIG_TEXT[a.signature]),
+    h('dl', { class: 'facts' }, h('dt', {}, 'Total amount'), h('dd', {}, 'CHF ' + chf(a.totalAmount)),
+      h('dt', {}, 'Window'), h('dd', {}, `${clock(a.firstTimestamp)} → ${clock(a.lastTimestamp)} (${mins} min)`),
+      h('dt', {}, 'Accounts'), h('dd', {}, a.accountRefs.length), h('dt', {}, 'Evidence edges'), h('dd', {}, a.edgeIds.length + ' · retained permanently'),
+      h('dt', {}, 'Alert ID'), h('dd', { style: 'font-size:11px' }, a.alertId)),
+    h('div', { class: 'accts' }, a.accountRefs.map(r => h('div', {}, r.replace('account:', '')))));
+  try { const v = vizFromApi(await api(`/api/alerts/${id}/graph`)); drawGraph($('#alertViz'), v.nodes, v.edges); } catch (e) { toast(e.message, 'err'); }
+}
+const simError = (e, flag) => toast(e.status === 404 ? `Simulator disabled. Set ${flag}=true and restart.` : e.message, 'err');
+$$('[data-sim]').forEach(b => { b.onclick = () => busy(b, async () => {
+  try {
+    const r = await api(`/api/graphweaver/simulate/${b.dataset.sim}?${b.dataset.param}=${$('#' + b.dataset.src).value}`, { method: 'POST' });
+    toast(`${nf.format(r.sent)} payments published`, 'ok'); setTimeout(refresh, 2500);
+  } catch (e) { simError(e, 'aegis.graphweaver.simulator-enabled'); }
+}); });
+$('#detectBtn').onclick = e => busy(e.currentTarget, async () => {
+  try {
+    const r = await api('/api/graphweaver/detect', { method: 'POST' });
+    toast(r.length ? `${r.length} new signature(s) detected` : 'No new signatures (already reported, or none present)', r.length ? 'ok' : '');
+    await refresh(); if (r.length && state.alerts[0]) selectAlert(state.alerts[0].alertId);
+  } catch (err) { simError(err, 'aegis.graphweaver.simulator-enabled'); }
+});
+
+/* ---------- Load test ---------- */
+const seedBtn = $('#seedBtn');
+seedBtn.onclick = () => busy(seedBtn, async () => {
+  const t0 = Date.now(), timer = setInterval(() => { $('#seedStatus').textContent = `Running… ${Math.round((Date.now() - t0) / 1000)}s`; }, 250);
+  try {
+    const r = await api(`/api/test/seed?scale=${$('#seedScale').value}&seed=${$('#seedSeed').value || 42}&direct=${$('#seedDirect').checked}`, { method: 'POST' });
+    renderReport(r); $('#seedStatus').textContent = `Completed in ${(r.timingsMs.total / 1000).toFixed(1)}s`; toast('Load test complete', 'ok'); refresh();
+  } catch (e) { $('#seedStatus').textContent = ''; toast(e.status === 404 ? 'Seeder disabled. Set aegis.seeder.enabled=true and restart.' : e.message, 'err'); }
+  finally { clearInterval(timer); }
+});
+function renderReport(r) {
+  $('#report').hidden = false;
+  const planted = sum(r.patternsPlanted), found = r.detectionTriggers, ok = found === planted && !r.ingestTimedOut;
+  $('#repKpis').replaceChildren(
+    kpi('Total time', (r.timingsMs.total / 1000).toFixed(2) + ' s', `${r.scale} · ${r.mode}`),
+    kpi('Ingest throughput', nf.format(r.ingestThroughputTxPerSec), 'transactions / second', 'green'),
+    kpi('Transactions', nf.format(r.transactionsIngested), r.ingestTimedOut ? `of ${nf.format(r.transactionsPublished)} (timed out)` : `of ${nf.format(r.transactionsPublished)} ingested`, r.ingestTimedOut ? 'red' : ''),
+    kpi('Nodes created', nf.format(sum(r.nodesCreated)), 'persons, companies, trusts, accounts'),
+    kpi('Edges written', nf.format(sum(r.edgesWritten)), 'OWNS, CONTROLS, TRANSFERRED_TO'),
+    kpi('Detections', `${found} / ${planted}`, ok ? 'all planted patterns found' : 'check results below', ok ? 'green' : 'red'));
+  const parts = [['ownershipPersist', 'Ownership persist', '#7c3aed'], ['publish', 'Publish', '#2563eb'], ['ingestWait', 'Ingest wait', '#0f766e'], ['detectionPass', 'Detection pass', '#d97706']];
+  const tot = parts.reduce((a, [k]) => a + (r.timingsMs[k] || 0), 0) || 1;
+  $('#stack').replaceChildren(...parts.map(([k, , c]) => h('b', { style: `width:${(r.timingsMs[k] || 0) / tot * 100}%;background:${c}`, title: k })));
+  $('#stackLegend').replaceChildren(...parts.map(([k, n, c]) => h('span', {}, h('i', { style: `background:${c}` }), `${n}: ${nf.format(r.timingsMs[k] || 0)} ms`)));
+  bars($('#repNodes'), r.nodesCreated, NODE); bars($('#repEdges'), r.edgesWritten, EDGE);
+  $('#repPatterns').replaceChildren(...Object.keys(r.patternsPlanted).map(k => {
+    const p = r.patternsPlanted[k], d = r.patternsDetected[k] ?? 0;
+    return h('tr', {}, h('td', {}, SIG[k]), h('td', { class: 'num' }, p), h('td', { class: 'num' }, d),
+      h('td', {}, d === p ? h('span', { class: 'ok-t' }, '✔ Match') : d < p ? h('span', { class: 'err-t' }, '✖ Missed ' + (p - d)) : h('span', { class: 'warn-t' }, '⚠ ' + (d - p) + ' extra')));
+  }));
+}
+
+route(); setInterval(refresh, 4000);
 </script>
 </body>
 </html>

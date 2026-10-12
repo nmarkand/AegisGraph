@@ -10,8 +10,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import com.cognizant.aegisgraph.*;
-import com.cognizant.aegisgraph.graphweaver.*;
 import com.cts.aegisgraph.graphweaver.*;
 import com.cts.aegisgraph.shadowtrace.ExtractedOwnership;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
