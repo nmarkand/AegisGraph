@@ -1,0 +1,60 @@
+spring:
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      init:
+        pull-model-strategy: when_missing
+      chat:
+        options:
+          model: llama3.2:1b
+          temperature: 0.0
+          num-ctx: 16384
+      embedding:
+        options:
+          model: nomic-embed-text
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+  threads:
+    virtual:
+      enabled: true
+  http:
+    client:
+      read-timeout: 10m
+  cloud:
+    function:
+      definition: transactionIn
+    stream:
+      bindings:
+        transactionIn-in-0:
+          destination: aegis.payments.transactions
+          group: graphweaver
+          consumer:
+            max-attempts: 3
+      kafka:
+        binder:
+          brokers: localhost:9092
+        bindings:
+          transactionIn-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: aegis.payments.transactions.dlq
+
+aegis:
+  seeder:
+    enabled: false   # demo only: set true or AEGIS_SEEDER_ENABLED=true
+  passport-salt: ${AEGIS_PASSPORT_SALT:change-me}
+  graphweaver:
+    temporary-retention: 48h
+    permanent-amount-threshold: 100000
+    window: 60m
+    fan-in-window: 10m
+    min-intermediaries: 20
+    structuring-ceiling: 10000
+    amount-tolerance: 0.1
+    min-cycle-hops: 3
+    max-cycle-hops: 6
+    detection-interval: PT30S
+    alert-topic: aegis.aml.alerts
+    simulator-enabled: true   # dev only

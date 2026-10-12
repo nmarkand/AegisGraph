@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AegisGraph · ShadowTrace</title>
+<style>
+  :root { --navy:#0b2545; --blue:#13539b; --bg:#f3f5f8; --line:#d7dce3; --text:#1c2733; --muted:#6b7785; --err:#b3261e; --ok:#1b7a3d; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  header { background:var(--navy); color:#fff; padding:14px 32px; display:flex; align-items:baseline; gap:12px; }
+  header h1 { margin:0; font-size:18px; font-weight:600; letter-spacing:.3px; }
+  header span { color:#9fb3cc; font-size:13px; }
+  main { max-width:960px; margin:24px auto; padding:0 24px; display:grid; gap:20px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:6px; padding:20px; }
+  .card h2 { margin:0 0 12px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); }
+  #drop { border:2px dashed var(--line); border-radius:6px; padding:32px; text-align:center; color:var(--muted); cursor:pointer; transition:.15s; }
+  #drop.over, #drop:hover { border-color:var(--blue); background:#f0f5fb; }
+  #drop strong { color:var(--text); display:block; margin-bottom:4px; }
+  .row { display:flex; gap:12px; align-items:center; margin-top:16px; }
+  button { background:var(--blue); color:#fff; border:0; border-radius:4px; padding:9px 18px; font-size:14px; cursor:pointer; }
+  button:disabled { background:#9db4cf; cursor:not-allowed; }
+  button.secondary { background:#fff; color:var(--blue); border:1px solid var(--blue); padding:5px 12px; font-size:12px; }
+  #status { color:var(--muted); }
+  #status.err { color:var(--err); } #status.ok { color:var(--ok); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; }
+  .stat { border:1px solid var(--line); border-radius:4px; padding:10px 12px; }
+  .stat b { display:block; font-size:22px; color:var(--navy); }
+  .stat small { color:var(--muted); text-transform:uppercase; font-size:11px; letter-spacing:.4px; }
+  #skipped { margin-top:12px; color:var(--err); font-size:13px; white-space:pre-line; }
+  .head { display:flex; justify-content:space-between; align-items:center; }
+  pre { margin:0; background:#0f1b2d; color:#d6e2f2; padding:16px; border-radius:4px; overflow:auto; max-height:520px; font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<header><h1>AegisGraph · ShadowTrace</h1><span>Static Ownership Mapping</span></header>
+<main>
+  <section class="card">
+    <h2>Upload trust deed</h2>
+    <div id="drop"><strong id="fname">Drop a PDF here or click to browse</strong>Trust deeds, shell company registries, corporate filings</div>
+    <input id="file" type="file" accept="application/pdf" class="hidden">
+    <div class="row"><button id="go" disabled>Extract &amp; map ownership</button><span id="status"></span></div>
+  </section>
+
+  <section id="result" class="card hidden">
+    <h2>Graph summary</h2>
+    <div class="stats" id="stats"></div>
+    <div id="skipped"></div>
+  </section>
+
+  <section id="jsonCard" class="card hidden">
+    <div class="head"><h2>Extracted entities (raw JSON)</h2><button class="secondary" id="copy">Copy</button></div>
+    <pre id="json"></pre>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const drop = $('drop'), input = $('file'), go = $('go'), status = $('status');
+let file = null, timer = null;
+
+function pick(f) {
+  if (!f) return;
+  if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) return setStatus('Only PDF files are accepted.', 'err');
+  file = f; $('fname').textContent = f.name + ' (' + (f.size / 1048576).toFixed(1) + ' MB)';
+  go.disabled = false; setStatus('');
+}
+function setStatus(msg, cls = '') { status.textContent = msg; status.className = cls; }
+
+drop.onclick = () => input.click();
+input.onchange = () => pick(input.files[0]);
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); pick(e.dataTransfer.files[0]); };
+
+go.onclick = async () => {
+  go.disabled = true; $('result').classList.add('hidden'); $('jsonCard').classList.add('hidden');
+  const t0 = Date.now();
+  timer = setInterval(() => setStatus('Processing… ' + Math.round((Date.now() - t0) / 1000) + 's (OCR + LLM extraction can take minutes)'), 500);
+  try {
+    const body = new FormData(); body.append('file', file);
+    const res = await fetch('/api/shadowtrace/upload', { method: 'POST', body });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || data.message || 'HTTP ' + res.status);
+    render(data);
+    setStatus('Done in ' + Math.round((Date.now() - t0) / 1000) + 's', 'ok');
+  } catch (e) { setStatus(e.message, 'err'); }
+  finally { clearInterval(timer); go.disabled = false; }
+};
+
+function render(d) {
+  const x = d.extracted, g = d.graph;
+  const stats = [['Persons', x.persons.length], ['Companies', x.companies.length], ['Trusts', x.trusts.length],
+                 ['OWNS', x.owns.length], ['CONTROLS', x.controls.length], ['Graph vertices', g.vertexTotal], ['Graph edges', g.edgeTotal]];
+  $('stats').innerHTML = '';
+  stats.forEach(([label, n]) => {
+    const el = document.createElement('div'); el.className = 'stat';
+    el.innerHTML = '<b></b><small></small>'; el.firstChild.textContent = n; el.lastChild.textContent = label;
+    $('stats').appendChild(el);
+  });
+  $('skipped').textContent = g.skippedEdges.length ? 'Skipped (unresolved entity reference):\n' + g.skippedEdges.join('\n') : '';
+  $('json').textContent = JSON.stringify(d.extracted, null, 2);
+  $('result').classList.remove('hidden'); $('jsonCard').classList.remove('hidden');
+}
+
+$('copy').onclick = async () => { await navigator.clipboard.writeText($('json').textContent); $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy', 1200); };
+</script>
+</body>
+</html>
