@@ -1,7 +1,9 @@
 package com.cts.aegisgraph.shadowtrace;
 
-
 import com.cts.aegisgraph.graphweaver.GraphPersistenceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +19,8 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/shadowtrace")
 public class ShadowTraceController {
+
+    private static final Logger log = LoggerFactory.getLogger(ShadowTraceController.class);
 
     public record UploadResponse(String filename, ExtractedOwnership extracted, GraphPersistenceService.PersistenceResult graph) {}
 
@@ -35,11 +39,19 @@ public class ShadowTraceController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PDF documents are accepted");
 
         String name = file.getOriginalFilename() == null ? "unknown.pdf" : file.getOriginalFilename();
+        long t0 = System.nanoTime();
+        log.info("Upload received: {} ({} bytes)", name, bytes.length);
         try {
             ExtractedOwnership extracted = parser.parse(new ByteArrayResource(bytes), name);
-            return new UploadResponse(name, extracted, persistence.persist(extracted, name));
+            var graph = persistence.persist(extracted, name);
+            log.info("Upload {} finished in {} s: {} persons, {} companies, {} trusts, {} owns, {} controls, {} skipped edges",
+                    name, (System.nanoTime() - t0) / 1_000_000_000, extracted.persons().size(), extracted.companies().size(),
+                    extracted.trusts().size(), extracted.owns().size(), extracted.controls().size(), graph.skippedEdges().size());
+            return new UploadResponse(name, extracted, graph);
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Extraction failed: " + e.getMessage(), e);
+            log.error("Upload failed for {}", name, e);   // full stack trace in the application log
+            Throwable root = NestedExceptionUtils.getMostSpecificCause(e);
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Extraction failed: " + root.getClass().getSimpleName() + ": " + root.getMessage(), e);
         }
     }
 }

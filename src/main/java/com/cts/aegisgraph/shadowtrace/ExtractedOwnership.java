@@ -1,5 +1,7 @@
 package com.cts.aegisgraph.shadowtrace;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 
 import java.util.LinkedHashMap;
@@ -40,9 +42,31 @@ public record ExtractedOwnership(
                             String governingLaw) {}
 
     public record OwnsEdge(String sourceRef, String targetRef,
-                           @JsonPropertyDescription("Ownership share 0-100, null if not stated") Double percentage,
-                           @JsonPropertyDescription("Voting rights share 0-100, null if not stated") Double votingRights,
-                           @JsonPropertyDescription("Short verbatim quote (<=200 chars) supporting the edge") String evidence) {}
+                           @JsonPropertyDescription("Ownership share 0-100 as a plain number without a % sign, null if not stated") Double percentage,
+                           @JsonPropertyDescription("Voting rights share 0-100 as a plain number, null if not stated") Double votingRights,
+                           @JsonPropertyDescription("Verbatim quote of at most 60 characters") String evidence) {
+
+        /** Tolerant JSON entry point: models sometimes answer "100%" or "35,5" instead of a number. */
+        @JsonCreator
+        public static OwnsEdge fromJson(@JsonProperty("sourceRef") String sourceRef,
+                                        @JsonProperty("targetRef") String targetRef,
+                                        @JsonProperty("percentage") Object percentage,
+                                        @JsonProperty("votingRights") Object votingRights,
+                                        @JsonProperty("evidence") String evidence) {
+            return new OwnsEdge(sourceRef, targetRef, toPercent(percentage), toPercent(votingRights), evidence);
+        }
+
+        private static Double toPercent(Object v) {
+            if (v == null) return null;
+            if (v instanceof Number n) return n.doubleValue();
+            String s = v.toString().replace(',', '.').replaceAll("[^0-9.\\-]", "");
+            try {
+                return s.isEmpty() ? null : Double.valueOf(s);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+    }
 
     public record ControlsEdge(String sourceRef, String targetRef, ControlRole role, String evidence) {}
 

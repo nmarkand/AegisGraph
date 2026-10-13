@@ -1,6 +1,5 @@
 package com.cts.aegisgraph.graphweaver;
 
-import com.cts.aegisgraph.shadowtrace.ExtractedOwnership;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
